@@ -1,31 +1,24 @@
-name: Generate Semantic Release and publish on PyPI
+name: Auto Release (Weekly)
 on:
   push:
-    branches:
-      - v5.x
+    branches: [rokct]
+  schedule:
+    - cron: '0 16 * * 5'
+
 jobs:
   release:
-    name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.14'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    uses: RokctAI/shared-workflows/.github/workflows/universal-release.yml@main
+    with:
+      # Dogfooding: Use the new Weekly Strategy
+      release_strategy: 'weekly'
 
-      - name: Setup dependencies
-        run: |
-          npm install @semantic-release/git @semantic-release/exec --no-save
-          python3 -m pip install wheel twine hatch==1.14.1
+      
+      # Brain Endpoint 
+      brain_endpoint: https://platform.rokct.ai/api/method/brain.api.generate_release_notes
+    secrets: inherit
 
-      - name: Create Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        run: npx semantic-release
+
